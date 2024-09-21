@@ -1,0 +1,53 @@
+# Grifted from https://github.com/jupyterlite/demo/blob/main/.github/workflows/deploy.yml
+name: Build and Deploy
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - '*'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install the dependencies
+        run: |
+          pip install
+            jupyterlite-core==0.4.2
+            jupyterlite-pyodide-kernel==0.4.2
+      - name: Build the JupyterLite site
+        run: |
+          jupyter lite build --output-dir dist
+          # TODO: Build a jupyterlite extension
+          cp load-notebooks.js dist
+          gsed "s|      await import('./config-utils.js');|      await import('./config-utils.js');\n      await import('./load-notebooks.js');|" index.html
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: ./dist
+
+  deploy:
+    needs: build
+    if: github.ref == 'refs/heads/main'
+    permissions:
+      pages: write
+      id-token: write
+
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
