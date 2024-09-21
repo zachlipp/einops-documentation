@@ -21,8 +21,8 @@ jobs:
           python-version: '3.11'
       - name: Install the dependencies
         run: |
-          pip install
-            jupyterlite-core==0.4.2
+          pip install \
+            jupyterlite-core==0.4.2 \
             jupyterlite-pyodide-kernel==0.4.2
       - name: Build the JupyterLite site
         run: |
