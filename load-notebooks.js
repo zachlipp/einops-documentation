@@ -115,7 +115,6 @@ async function fetchFileAndStore(url, filename) {
 async function downloadNotebooks() {
   await openDB();
   await fetchDirectoryContents();
-  close(db);
 }
 
 downloadNotebooks();
