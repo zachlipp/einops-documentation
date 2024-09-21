@@ -39,7 +39,10 @@ async function fetchDirectoryContents() {
     const files = await response.json();
     const fileFetchPromises = files
       .filter((file) => file.type === "file") // Only download files
-      .map((file) => fetchFileAndStore(file.download_url, file.name));
+      .map(async (file) => {
+        await new Promise((resolve) => setTimeout(resolve, 1000));
+        return fetchFileAndStore(file.download_url, file.name);
+      });
 
     await Promise.all(fileFetchPromises);
     console.log("All files fetched and stored in IndexedDB.");
