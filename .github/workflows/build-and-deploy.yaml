@@ -29,7 +29,7 @@ jobs:
           jupyter lite build --output-dir dist
           # TODO: Build a jupyterlite extension
           cp load-notebooks.js dist
-          sed -iE "s|      await import('./config-utils.js');|      await import('./config-utils.js');\n      await import('./load-notebooks.js');|" dist/index.html
+          sed -iE 's|          <meta charset="utf-8" />|          <meta charset="utf-8" />\n          <script>await import ("../load-notebooks.js")</script>|' dist/lab/index.html
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
