@@ -3,24 +3,20 @@ const repoName = "einops";
 const directoryPath = "docs";
 const branch = "main";
 
-let db;
+// This is now a Josh fan account
+// https://stackoverflow.com/a/24372101
+var openDatabaseRequest = indexedDB.open("JupyterLite Storage");
 
-async function openDB() {
-  return new Promise((resolve, reject) => {
-    const request = indexedDB.open("JupyterLite Storage");
+openDatabaseRequest.onsuccess = async function (event) {
+  var db = openDatabaseRequest.result;
+  await fetchDirectoryContents(db);
+};
 
-    request.onsuccess = function (event) {
-      db = event.target.result;
-      resolve(db);
-    };
+openDatabaseRequest.onerror = function (event) {
+  reject("Error opening IndexedDB: " + event.target);
+};
 
-    request.onerror = function (event) {
-      reject("Error opening IndexedDB: " + event.target);
-    };
-  });
-}
-
-async function fetchDirectoryContents() {
+async function fetchDirectoryContents(db) {
   const apiURL = `https://api.github.com/repos/${repoOwner}/${
     repoName
   }/contents/${directoryPath}?ref=${branch}`;
@@ -41,7 +37,7 @@ async function fetchDirectoryContents() {
       .filter((file) => file.type === "file") // Only download files
       .map(async (file) => {
         await new Promise((resolve) => setTimeout(resolve, 1000));
-        return fetchFileAndStore(file.download_url, file.name);
+        return fetchFileAndStore(db, file.download_url, file.name);
       });
 
     await Promise.all(fileFetchPromises);
@@ -76,7 +72,7 @@ async function handleFileData(filename, response, blob) {
   return metadata;
 }
 
-async function fetchFileAndStore(url, filename) {
+async function fetchFileAndStore(db, url, filename) {
   try {
     const response = await fetch(url);
     if (!response.ok) {
@@ -114,11 +110,3 @@ async function fetchFileAndStore(url, filename) {
     console.error(`Error fetching file ${filename}:`, error);
   }
 }
-
-async function downloadNotebooks() {
-  await openDB();
-  await fetchDirectoryContents();
-  close(db);
-}
-
-downloadNotebooks();
